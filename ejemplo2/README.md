@@ -195,6 +195,14 @@ Para poner a funcionar el código anterior, realizar las siguientes acciones:
   
     ![serial_out2](serial_out2.png)
 
+* https://forum.arduino.cc/t/wifi-sensor-html-not-working/587816
+* https://www.arhs-group.com/using-node-red-to-mock-out-restful-webservices/
+* https://discourse.nodered.org/t/how-to-implement-the-rest-api/16197
+* https://flows.nodered.org/flow/baa6c78af38d43d91258bc272da18e3a
+* https://cookbook.nodered.org/http/create-an-http-endpoint
+* https://medium.com/@ankur.kus1/build-rest-api-using-flow-based-programming-node-red-4ed343228ba
+
+
 ## Enlaces
 
 * Los componentes fritzing pueden ser descargados y luego importados del siguiente [link](https://github.com/GabrielNotman/SODAQ_Fritzing/tree/master/Fritzing%20Parts)
