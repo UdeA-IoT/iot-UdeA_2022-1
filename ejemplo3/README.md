@@ -178,9 +178,11 @@ A continuación se muestra el diagrama de conexión entre la placa y los compone
 |---|---|---|
 |P5|```GPIO5```|Grove - Red LED|
 |P17|```GPIO17```|Grove - Button|
+|P34|```GPIO34```|Grove - Rotary Angle Sensor|
 
+El diagrama de conexión se muestra en la siguiente figura:
 
-![conexión](ejemplo1_bb.jpg)
+![conexión](ejemplo3_bb.png)
 
 ## Puesta en marcha
 
