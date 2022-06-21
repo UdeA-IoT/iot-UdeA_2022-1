@@ -1,208 +1,179 @@
-# Ejemplo 2 
+# Ejemplo 2
 
-:bug:
+## Lista de partes
 
-## Hardware necesario
-
-1. NODEMCU-ESP32
-2. Grove - Rotary Angle Sensor ([link](https://wiki.seeedstudio.com/Grove-Rotary_Angle_Sensor/)) 
-3. Grove - Red LED ([link](https://wiki.seeedstudio.com/Grove-Red_LED/))
-4. Grove - Button ([link](https://wiki.seeedstudio.com/Grove-Button/))
-
+1. NodeMCU-ESP32S
 
 ## Descripción
 
-El codigo que se muestra a continuación hace que un NodeMCU funcione como Access Point inalambrico y un servidor Web. Este ejemplo es el [Example 3: Access Point (AP) Web Server](https://learn.sparkfun.com/tutorials/esp8266-thing-development-board-hookup-guide/example-sketch-web-server) tomado del tutorial de Sparkfun [ESP8266 Thing Development Board Hookup Guide](https://learn.sparkfun.com/tutorials/esp8266-thing-development-board-hookup-guide/introduction). Sin embargo, para este caso se hicieron las siguientes adaptaciones:
-1. La placa para la cual se implemento fue para la NodeMCU-ESP32S.
-2. Esta placa se puso a funcionar como estacion (**STA**).
-3. Se hicieron las modificaciones necesarias para la conexión de algunos de los elementos externos.
+En este ejemplo se pone a funcionar un servidor sencillo en el ESP32 con el objetivo de prender y apagar un led conectado desde un navegador web.
 
-## Codigo
+El ejemplo se encuentra dentro se los que vienen con el IDE de Arduino (una vez se han instalado los plugings correspondientes al ESP32). Este ejemplo es **SimpleWiFiServer**; para acceder siga la siguiente ruta: **Examples > WiFi > SimpleWiFiServer** tal y como se muestra en la siguiente imagen:
 
-El código fue tomado del siguiente [link]( https://learn.sparkfun.com/tutorials/esp32-thing-hookup-guide#arduino-example-wifi) y adaptado tal y como se describe a contitnuación:
+![ejemplo_SimpleWiFiServer](ejemplo_SimpleWiFiServer.png)
 
-* **Puertos de proposito general (GPIO)**:
-
-|Pin|GPIO|Variable|Valor|Elemento conectado|
-|---|---|---|---|---|
-|P5|```GPIO5```|```LED_PIN```|```5```|Grove - Red LED|
-|P17|```GPIO17```|```BUTTON_PIN```|```17```|Grove - Button|
-|P17|```GPIO15```|```BUTTON_PIN```|```17```|Grove - Button|
-
-* **Configuración WIFi**:
-
-|Variable|Valor|
-|---|---|
-|```networkName```|```"invitado-udea"```|
-|```networkPswd```|```""```|
-
-A continuación se muestra el codigo original, su tarea consistira en codificarlo en el Arduino IDE y modificarlo segun la información anteriormente mostrada:
+## Código
 
 ```ino
+/*
+ WiFi Web Server LED Blink
+
+ A simple web server that lets you blink an LED via the web.
+ This sketch will print the IP address of your WiFi Shield (once connected)
+ to the Serial monitor. From there, you can open that address in a web browser
+ to turn on and off the LED on pin 5.
+
+ If the IP address of your shield is yourAddress:
+ http://yourAddress/H turns the LED on
+ http://yourAddress/L turns it off
+
+ This example is written for a network using WPA encryption. For
+ WEP or WPA, change the Wifi.begin() call accordingly.
+
+ Circuit:
+ * WiFi shield attached
+ * LED attached to pin 5
+
+ created for arduino 25 Nov 2012
+ by Tom Igoe
+
+ported for sparkfun esp32 
+31.01.2017 by Jan Hendrik Berlin
+ 
+ */
+
 #include <WiFi.h>
-#include <WiFiClient.h>
 
-//////////////////////
-// WiFi Definitions //
-//////////////////////
-// Set these to your desired credentials.
-const char *ssid = "yourAP";
-const char *password = "yourPassword";
-
-/////////////////////
-// Pin Definitions //
-/////////////////////
-const int LED_PIN = 5; // LED (GPIO5)
-const int ANALOG_PIN = 15; // Analog pin (GPIO15)
-const int DIGITAL_PIN = 17; // Digital pin (GPIO17)
+const char* ssid     = "yourssid";
+const char* password = "yourpasswd";
 
 WiFiServer server(80);
 
-void setup() 
+void setup()
 {
-  initHardware();
-  setupWiFi();
-  server.begin();
+    Serial.begin(115200);
+    pinMode(5, OUTPUT);      // set the LED pin mode
+
+    delay(10);
+
+    // We start by connecting to a WiFi network
+
+    Serial.println();
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected.");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+    
+    server.begin();
+
 }
 
-void loop() 
-{
-  // Check if a client has connected
-  WiFiClient client = server.available();
-  if (!client) {
-    return;
+int value = 0;
+
+void loop(){
+ WiFiClient client = server.available();   // listen for incoming clients
+
+  if (client) {                             // if you get a client,
+    Serial.println("New Client.");           // print a message out the serial port
+    String currentLine = "";                // make a String to hold incoming data from the client
+    while (client.connected()) {            // loop while the client's connected
+      if (client.available()) {             // if there's bytes to read from the client,
+        char c = client.read();             // read a byte, then
+        Serial.write(c);                    // print it out the serial monitor
+        if (c == '\n') {                    // if the byte is a newline character
+
+          // if the current line is blank, you got two newline characters in a row.
+          // that's the end of the client HTTP request, so send a response:
+          if (currentLine.length() == 0) {
+            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+            // and a content-type so the client knows what's coming, then a blank line:
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println();
+
+            // the content of the HTTP response follows the header:
+            client.print("Click <a href=\"/H\">here</a> to turn the LED on pin 5 on.<br>");
+            client.print("Click <a href=\"/L\">here</a> to turn the LED on pin 5 off.<br>");
+
+            // The HTTP response ends with another blank line:
+            client.println();
+            // break out of the while loop:
+            break;
+          } else {    // if you got a newline, then clear currentLine:
+            currentLine = "";
+          }
+        } else if (c != '\r') {  // if you got anything else but a carriage return character,
+          currentLine += c;      // add it to the end of the currentLine
+        }
+
+        // Check to see if the client request was "GET /H" or "GET /L":
+        if (currentLine.endsWith("GET /H")) {
+          digitalWrite(5, HIGH);               // GET /H turns the LED on
+        }
+        if (currentLine.endsWith("GET /L")) {
+          digitalWrite(5, LOW);                // GET /L turns the LED off
+        }
+      }
+    }
+    // close the connection:
+    client.stop();
+    Serial.println("Client Disconnected.");
   }
-
-  // Read the first line of the request
-  String req = client.readStringUntil('\r');
-  Serial.println(req);
-  client.flush();
-
-  // Match the request
-  int val = -1; // We'll use 'val' to keep track of both the
-                // request type (read/set) and value if set.
-  if (req.indexOf("/led/0") != -1)
-    val = 1; // Will write LED high
-  else if (req.indexOf("/led/1") != -1)
-    val = 0; // Will write LED low
-  else if (req.indexOf("/read") != -1)
-    val = -2; // Will print pin reads
-  // Otherwise request will be invalid. We'll say as much in HTML
-
-  // Set GPIO5 according to the request
-  if (val >= 0)
-    digitalWrite(LED_PIN, val);
-
-  client.flush();
-
-  // Prepare the response. Start with the common header:
-  String s = "HTTP/1.1 200 OK\r\n";
-  s += "Content-Type: text/html\r\n\r\n";
-  s += "<!DOCTYPE HTML>\r\n<html>\r\n";
-
-  /*Note: Uncomment the line below to refresh automatically
-   *      for every 1 second. This is not ideal for large pages 
-   *      but for a simple read out, it is useful for monitoring 
-   *      your sensors and I/O pins. To adjust the fresh rate, 
-   *      adjust the value for content. For 30 seconds, simply 
-   *      change the value to 30.*/
-  //s += "<meta http-equiv='refresh' content='1'/>\r\n";//auto refresh page
-
-  // If we're setting the LED, print out a message saying we did
-  if (val >= 0)
-  {
-    s += "LED is now ";
-    s += (val)?"off":"on";
-  }
-  else if (val == -2)
-  { // If we're reading pins, print out those values:
-    s += "Analog Pin = ";
-    s += String(analogRead(ANALOG_PIN));
-    s += "<br>"; // Go to the next line.
-    s += "Digital Pin 12 = ";
-    s += String(digitalRead(DIGITAL_PIN));
-  }
-  else
-  {
-    s += "Invalid Request.<br> Try /led/1, /led/0, or /read.";
-  }
-  s += "</html>\n";
-
-  // Send the response to the client
-  client.print(s);
-  delay(1);
-  Serial.println("Client disonnected");
-
-  // The client will actually be disconnected 
-  // when the function returns and 'client' object is detroyed
 }
-
-void setupWiFi()
-{
-  // Connect to Wi-Fi network with SSID and password
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  IPAddress serverIP = WiFi.localIP();
-  Serial.print("Server IP address: ");
-  Serial.println(serverIP);
-  server.begin();
-
-  Serial.println("Server started");
-}
-
-void initHardware()
-{
-  Serial.begin(115200);
-  pinMode(DIGITAL_PIN, INPUT);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
-  // Don't need to set ANALOG_PIN as input, 
-  // that's all it can be.
-}
-
 ```
-
-## Diagrama de conexión
-
-A continuación se muestra el diagrama de conexión entre la placa y los componentes externos, la conexión esta hecha de acuerdo a la siguiente tabla:
-
-|Pin|GPIO|Elemento conectado|
-|---|---|---|
-|P5|```GPIO5```|Grove - Red LED|
-|P17|```GPIO17```|Grove - Button|
-
-
-![conexión](ejemplo1_bb.jpg)
 
 ## Puesta en marcha
 
-Para poner a funcionar el código anterior, realizar las siguientes acciones:
-1. Realizar las conexiones propuestas en el diagrama de conexion.
-2. Conectar la placa NodeMCU-ESP32 y configurar el IDE para que esta sea la tarjeta a usar.
-3. Codificar el codigo anteriormente suministrado.
-4. Modificar el código de acuerdo a las instrucciones anteriormente dadas.
-5. Descargar el código en la placa.
-6. Abrir el monitor serial a ```115200``` pbs y probar el programa y averiguar como funciona. Si todo esta bien el programa funcionara de la siguiente manera:
-   *  Salida tras la conexión de la placa al AP de la red:
+1. Antes de descargar el código a la tarjeta  configure los parametros de Red cambiando los valores de las variables ```ssid``` y ```password``` a los parametros de la red WiFi a la cual va a conectarse la tarjeta. 
+2. Descargue el código.
+3. Abriendo la consola serial, reinicie la placa y observe la salida en el monitor serial tal y como se muestra en la siguiente figura (apunte la IP de la placa):
 
-    ![serial_out1](serial_out.png)
+![salida_serial](SimpleWifiServer_serialOutput.png)
 
-   *  Salida tras presionar el boton:
-  
-    ![serial_out2](serial_out2.png)
+4. Una vez que se haya conectado puede usar el comando ping para verificar conectividad con el Access Point (AP), para ello desde una terminal ejecute el comando:
 
-* https://forum.arduino.cc/t/wifi-sensor-html-not-working/587816
-* https://www.arhs-group.com/using-node-red-to-mock-out-restful-webservices/
-* https://discourse.nodered.org/t/how-to-implement-the-rest-api/16197
-* https://flows.nodered.org/flow/baa6c78af38d43d91258bc272da18e3a
-* https://cookbook.nodered.org/http/create-an-http-endpoint
-* https://medium.com/@ankur.kus1/build-rest-api-using-flow-based-programming-node-red-4ed343228ba
+```bash
+ping IP_ESP32
+```
 
+Donde **IP_ESP32** es la IP que se le asigno a su placa **NODEMCU-ESP32S**, que para el caso del ESP32 es **192.168.1.12**
 
-## Enlaces
+![test_conectividad](test_ping.png)
 
-* Los componentes fritzing pueden ser descargados y luego importados del siguiente [link](https://github.com/GabrielNotman/SODAQ_Fritzing/tree/master/Fritzing%20Parts)
+5. Siguiendo las instrucciones (las cuales aparecen e) puede en los comentarios del código puede proceder a probar la aplicación desde su navegador favorito:
+
+![test_browser](browser.png)
+
+Si todo esta bien, será posible apagar y prender el led integrado en la tarjeta desde el navegador.
+
+### Opcional
+
+Adicionalmente, se pueden hacer las mismas pruebas con **postman**, a continuación se muestran los resultados al enviar las peticiones para encender y apagar el led:
+
+* **Encendido del led**:
+
+![led_on](led_on.png)
+
+* **Apagado del led**:
+
+![led_off](led_off.png)
+
+## Enlaces 
+
+* https://github.com/paulocsanz?tab=repositories
+* https://github.com/me-no-dev?tab=repositories
+* https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiAccessPoint/WiFiAccessPoint.ino
+* https://github.com/hideakitai?tab=repositories
+* https://help.ubidots.com/en/articles/748067-connect-an-esp32-devkitc-to-ubidots-over-mqtt
+* https://help.ubidots.com/en/articles/4855281-connect-your-esp32-to-ubidots-over-http-tcp-or-udp
