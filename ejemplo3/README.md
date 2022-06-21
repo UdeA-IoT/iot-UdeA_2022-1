@@ -17,6 +17,10 @@ El codigo que se muestra a continuación hace que un NodeMCU funcione como Acces
 2. Esta placa se puso a funcionar como estacion (**STA**).
 3. Se hicieron las modificaciones necesarias para la conexión de algunos de los elementos externos.
 
+Para la selección del pin analogo, se tuvo en cuenta la información obtenida del siguiente [foro](https://forum.arduino.cc/t/esp32-webserver-with-analogue-and-digital-sensors/948068):
+
+> Hi in your code indicates that you are using GPIO5 as an analog input. "const int pressureInput1 = 5; " But GPIO5 is not an analog input on ESP32. The analog inputs are: ADC1 : GPIO32, GPIO33, GPIO34, GPIO35, GPIO36 and GPIO39 and ADC2 : GPIO2, GPIO4, GPIO12, GPIO13, GPIO14, GPIO15, GPIO25, GPI…
+
 ## Codigo
 
 El código fue tomado del siguiente [link]( https://learn.sparkfun.com/tutorials/esp32-thing-hookup-guide#arduino-example-wifi) y adaptado tal y como se describe a contitnuación:
@@ -27,7 +31,7 @@ El código fue tomado del siguiente [link]( https://learn.sparkfun.com/tutorials
 |---|---|---|---|---|
 |P5|```GPIO5```|```LED_PIN```|```5```|Grove - Red LED|
 |P17|```GPIO17```|```BUTTON_PIN```|```17```|Grove - Button|
-|P17|```GPIO15```|```BUTTON_PIN```|```17```|Grove - Button|
+|P34|```GPIO34```|```ANALOG_PIN```|```34```|Grove - Button|
 
 * **Configuración WIFi**:
 
@@ -53,7 +57,7 @@ const char *password = "yourPassword";
 // Pin Definitions //
 /////////////////////
 const int LED_PIN = 5; // LED (GPIO5)
-const int ANALOG_PIN = 15; // Analog pin (GPIO15)
+const int ANALOG_PIN = 34; // Analog pin (GPIO15)
 const int DIGITAL_PIN = 17; // Digital pin (GPIO17)
 
 WiFiServer server(80);
