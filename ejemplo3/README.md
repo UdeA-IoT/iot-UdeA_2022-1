@@ -207,6 +207,8 @@ Para poner a funcionar el código anterior, realizar las siguientes acciones:
 * https://flows.nodered.org/flow/baa6c78af38d43d91258bc272da18e3a
 * https://cookbook.nodered.org/http/create-an-http-endpoint
 * https://medium.com/@ankur.kus1/build-rest-api-using-flow-based-programming-node-red-4ed343228ba
+* Importante: https://akuzechie.blogspot.com/2021/01/esp32-websocket-server-sending.html 
+* https://akuzechie.blogspot.com/2022/03/esp32-websocket-server-dht22-sensor.html
 
 
 ## Enlaces
