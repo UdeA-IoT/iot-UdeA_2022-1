@@ -1,6 +1,6 @@
 # Ejemplo 3 
 
-:bug:
+Este programa presenta un :bug: aun no corregido
 
 ## Hardware necesario
 
