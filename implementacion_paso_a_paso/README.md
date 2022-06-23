@@ -28,3 +28,8 @@ El proceso de construcción de la aplicación se lleva a cabo mediante los sigui
 3. Desarrollo de la aplicación en python (Interfaz grafica) ([link](paso2/README.md))
     
     ![paso3](paso3/ui_python.png)
+
+
+## REferencias
+
+* http://downonearthtutorials.blogspot.com/2014/09/real-time-serial-data-monitor-with.html
