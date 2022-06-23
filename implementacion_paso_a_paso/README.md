@@ -25,7 +25,7 @@ El proceso de construcción de la aplicación se lleva a cabo mediante los sigui
 2. Desarrollo de la aplicación en python (Texto) ([link](paso2/README.md))
 
    ![paso2](paso2/app_python.png)
-3. Desarrollo de la aplicación en python (Interfaz grafica) ([link](paso2/README.md))
+3. Desarrollo de la aplicación en python (Interfaz grafica) ([link](paso3/README.md))
     
     ![paso3](paso3/ui_python.png)
 
