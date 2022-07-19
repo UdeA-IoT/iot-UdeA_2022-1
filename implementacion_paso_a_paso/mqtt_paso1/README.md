@@ -1,6 +1,5 @@
 # Paso 1 - Implentacion del programa en la plataforma
 
-
 ## Requisitos previos
 
 Antes de empezar debe instalar las librerias para poder conectar los microcontroladores ESP8266/ESP32 usando MQTT ([EspMQTTClient](https://www.arduino.cc/reference/en/libraries/espmqttclient/)), el repositorio de esta libreria se encuentra en el siguiente [link](https://github.com/plapointe6/EspMQTTClient).
@@ -241,13 +240,13 @@ mosquitto -h
 |Terminal|Type|Topic|Comando en mosquito|Observaciones|
 |---|---|---|---|---|
 |1|Subscriber|```room/light```|```mosquitto_sub -h 127.0.0.1 -t "room/light"```|Terminal que simulara los comandos recibidos por el ESP32|
-|2|Publisher|```room/light/status```|<ul><li>**Led on**: <br> ```mosquitto_pub -h 127.0.0.1 -t "room/light/status" -m "on"``` </li>**Led off**: <br> ```mosquitto_pub -h 127.0.0.1 -t "room/light/status" -m "off"``` </li>|Terminal que simulara los comandos que envia el ESP32 para indicar el estado de las luces|
+|2|Publisher|```room/light/state```|<ul><li>**Led on**: <br> ```mosquitto_pub -h 127.0.0.1 -t "room/light/state" -m "on"``` </li>**Led off**: <br> ```mosquitto_pub -h 127.0.0.1 -t "room/light/state" -m "off"``` </li>|Terminal que simulara los comandos que envia el ESP32 para indicar el estado de las luces|
  
 * **Terminales que simulan la aplicación de escritorio**:
 
 |Terminal|Type|Topic|Comando en mosquito|Observaciones|
 |---|---|---|---|---|
-|3|Subscriber|```room/light/status```|```mosquitto_sub -h 127.0.0.1 -t "room/light/status"```|Terminal que simulara los comandos recibidos por la aplicación de escritorio (recibidos desde el publisher del ESP32)| 
+|3|Subscriber|```room/light/state```|```mosquitto_sub -h 127.0.0.1 -t "room/light/state"```|Terminal que simulara los comandos recibidos por la aplicación de escritorio (recibidos desde el publisher del ESP32)| 
 |4|Publisher|```room/light/```|<ul><li>**Led on**: <br> ```mosquitto_pub -h 127.0.0.1 -t "room/light" -m "on"``` </li><li>**Led off**: <br> ```mosquitto_pub -h 127.0.0.1 -t "room/light" -m "off"``` </li></ul>| Terminal que simulara los comandos de control enviados desde la aplicación de escritorio para controlar el ESP32|
 
 Para realizar las pruebas registre primero las terminales que funcionaran como suscriptores, tal y como se muestra en el siguiente orden:
@@ -280,8 +279,8 @@ Si todo esta bien, en la **terminal 1** (subscriber en el ESP32), se deberan mos
 Finalmente, simulemos el caso en el cual en la aplicación de escritorio se visualiza el mensaje publicado desde el ESP32 en el cual se informa del estado del led conectado a este. Para ello usando la **terminal 2** ejecute los siguientes comandos:
 
 ```bash
-mosquitto_pub -h 127.0.0.1 -t "room/light/status" -m "on"
-mosquitto_pub -h 127.0.0.1 -t "room/light/status" -m "off"
+mosquitto_pub -h 127.0.0.1 -t "room/light/state" -m "on"
+mosquitto_pub -h 127.0.0.1 -t "room/light/state" -m "off"
 ```
 
 A continuación se muestra el resultado de la aplicación de estos comandos en la **terminal 2**:
@@ -307,11 +306,12 @@ Con lo anterior queda simulada la comunicación en la red MQTT.
    * **Paso 1 - Suscritor asociado a la aplicación**: Recuerde que esto se hace con base en el siguiente comando (ya visto para la **terminal 3**):
 
    ```bash 
-   mosquitto_sub -h 127.0.0.1 -t "room/light/status"
+   mosquitto_sub -h 127.0.0.1 -t "room/light/state"
    ```
 
+<!--
 > **Nota importante (Dio por que mi Dios es muy bueno)**: Antes de seguir al siguinte paso, si la instalación del mosquitto fue realizada en una maquina con Windows 10, es necesario desbloquear el puerto 1883 en el firewall. Para mas información se recomienda que vea la parte final del siguiente video: **How to configure an MQTT Mosquitto broker and enable user authentication on Windows** ([link](https://www.youtube.com/watch?v=72u6gIkeqUc)) 
-
+-->
    * **Paso 2 - Aplicación del ESP32**: Una vez codificado el programa, se puede descargar el programa en el ESP32. Despues de hacer esto, abrir el **monitor serial**  configuradolo a una velocidad de ```115200``` la  cual fue la que se configuro en el programa en el ESP32 para la comunicación serial. Si la conexión con la red WiFi y el broker es exitosa, la salida será similar a la mostrada en la siguiente figura:
   
    ![conexion](esp32_mqtt-connection.png)
@@ -320,7 +320,7 @@ Con lo anterior queda simulada la comunicación en la red MQTT.
 
 |Terminal|Type|Topic|Comando en mosquito|
 |---|---|---|---|
-|1|Subscriber|```room/light/status```|```mosquitto_sub -t "room/light/status"```|T
+|1|Subscriber|```room/light/state```|```mosquitto_sub -t "room/light/state"```|T
 |2|Publisher|```room/light/```|<ul><li>**Led on**: <br> ```mosquitto_pub -t "room/light" -m "on"``` </li><li>**Led off**: <br> ```mosquitto_pub -t "room/light" -m "off"``` </li></ul>| T
 
 Como se puede ver en la tabla anterior, si se hace una comparación con los comandos mostrados en la tabla asociada a las **temirminales 3 y 4**, no se hizo uso de la opción ```-h```, ya que la maquina en la cual se estan haciendo las pruebas por consola es la misma en la cual se encuentra instalado el broker.
@@ -333,10 +333,11 @@ Si todo esta bien, cuando se envian comandos ```on``` y ```off```, el led se deb
 
 ![serial_esp32](serial_terminal_esp32.png)
 
-Adicionalmente, ya que el ESP32 publica el estado del led cuando este cambia, en la terminal suscriptora al topico para esto (```room/light/status```), el resultado será el siguiente:
+Adicionalmente, ya que el ESP32 publica el estado del led cuando este cambia, en la terminal suscriptora al topico para esto (```room/light/state```), el resultado será el siguiente:
 
 ![terminal_mqtt_sub](terminal_mqtt-sub.png)
 
 Finalmente, si todo esto esta bien hecho, es por que la aplicación asociada al ESP32 ya esta lista por lo que puede seguir con el siguiente paso.
 
-
+> ### Errores
+> Hay unos errores debido a la inconsistencia entre los comandos que se aplicaron y los que se mostraron en algunas de las figuras. Se espera corregir este error en proximas revisiones.
